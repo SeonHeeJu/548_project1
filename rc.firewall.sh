@@ -258,8 +258,10 @@ $IPTABLES -P FORWARD DROP
 #$IPTABLES -A FORWARD -p tcp -j bad_tcp_packets
 
 # Allow http traffic from client network to server network
+$IPTABLES -A FORWARD -p TCP -i $Client_NET_IFACE -o $Internet_IFACE -j ACCEPT
 $IPTABLES -A FORWARD -p icmp -o $Client_NET_IFACE -s 8.8.8.8 -j ACCEPT
-$IPTABLES -A FORWARD -p icmp -s 10.2.0.5 -i $Client_NET_IFACE -d 8.8.8.8 -j ACCEPT
+$IPTABLES -A FORWARD -p icmp -s 10.0.2.5 -i $Client_NET_IFACE -d 8.8.8.8 -j ACCEPT
+#$IPTABLES -A FORWARD -o $Client_NET_IFACE -i $Internet_IFACE -m state --state RELATED,ESTABLISHED -j ACCEPT
 
 
 # example of using allowed
@@ -274,6 +276,9 @@ $IPTABLES -A FORWARD -p icmp -s 10.2.0.5 -i $Client_NET_IFACE -d 8.8.8.8 -j ACCE
 # Provide your input rules below to allow web traffic from client
 #
 $IPTABLES -A INPUT -p TCP --dport 80 -i $Client_NET_IFACE -s 10.0.2.5 -j ACCEPT
+$IPTABLES -A INPUT -p TCP --dport 443 -i $Client_NET_IFACE -s 10.0.2.5 -j ACCEPT
+$IPTABLES -A INPUT -p TCP --dport 80  -i $LO_IFACE -d $WEB_IP_ADDRESS -j ACCEPT
+$IPTABLES -A INPUT -p TCP --dport 443  -i $LO_IFACE -d $WEB_IP_ADDRESS -j ACCEPT
 
 #
 # Example of checking bad TCP packets we don't want.
@@ -287,6 +292,7 @@ $IPTABLES -A INPUT -p TCP --dport 80 -i $Client_NET_IFACE -s 10.0.2.5 -j ACCEPT
 # Allowed ping from client and server
 
 $IPTABLES -A INPUT -p icmp -j DROP
+$IPTABLES -A INPUT -p ICMP -i $Internet_IFACE -s 8.8.8.8 -j ACCEPT
 
 #####
 # 4.3 OUTPUT chain
@@ -299,7 +305,10 @@ $IPTABLES -A INPUT -p icmp -j DROP
 # example Allowed ping message back to client 
 
 # $IPTABLES -A OUTPUT -p icmp -j ACCEPT
+$IPTABLES -A OUTPUT -p ICMP --icmp-type echo-reply -j ACCEPT
+$IPTABLES -A OUTPUT -p ICMP --icmp-type echo-request -j ACCEPT
 $IPTABLES -A OUTPUT -p TCP --s port 80 -i $Client_NET_IFACE -d 10.0.2.5 -j ACCEPT
+$IPTABLES -A OUTPUT -p TCP --s port 443 -i $Client_NET_IFACE -d 10.0.2.5 -j ACCEPT
 
 #####################################################################
 #                                                                   #
