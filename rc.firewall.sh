@@ -330,7 +330,7 @@ $IPTABLES -A OUTPUT -p TCP --s port 80 -i $Client_NET_IFACE -d 10.0.2.5 -j ACCEP
 #
 # Provide your NAT PREROUTING rules (packets go to the internet domain)
 # Add your own rule below to only allow ping from client to 8.8.8.8 on internet
-
+$IPTABLES -t nat -A POSTROUTING -p icmp -o $Internet_IFACE -d 8.8.8.8 -j MASQUERADE
 # Example: Allow client node to access to all Internet using masquerade
 $IPTABLES -t nat -A POSTROUTING -o $Internet_IFACE -d 8.8.8.8 -j MASQUERADE
 
